@@ -59,9 +59,31 @@ contract DSCEngine is Ownable {
     return IERC20(_tokenAddress).balanceOf(address(this));
   }
 
-  function depositCollateralAndMintDSC() external {}
+  /**
+   * @notice Deposit Collateral and Mint DSC
+   * @param _tokenCollateralAddress The address of the collateral token
+   * @param _amountCollateral The amount of collateral to deposit
+   */
+  function depositCollateralAndMintDSC(address _tokenCollateralAddress, uint256 _amountCollateral) external {}
+
+  function redeemCollateralForDSC() external {}
+
+  // e.g. an example of undercollateralized situation: 
+  // Threshhold to let's say 150%
+  // $100 ETH Collateral -> $74
+  // $50 DSC Minted
+  // Undercollateralized
+  // I'll pay back the $50 DSC -> Get all your collateral 
+  // $74
+  // -$50 DSC
+  // $24
+
 
   function burnDsc() external {}
 
   function liquidate() external {}
+
+  function getHealthFactor() public view returns (uint256) {
+    return 0;
+  }
 }
