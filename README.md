@@ -1,3 +1,17 @@
+# 
+
+1. (Relative Stability) Anchored or Pegged -> $1.00
+   1. Chainlink Price Feed.
+   2. Set a function to exchange ETH & BTC to $USD.
+2. Stability Mechanism (Minting): Algorithmic (Decentralized)
+   1. People can only mint the stablecoin with enough collateral. (coded)
+3. Collateral: Exogenous (Crypto) ->这意味着，这个稳定币的抵押物是外部依赖的
+   1. wETH
+   2. wBTC
+      1. This is a wrapper token for BTC which can be a little bit centralized.
+4. 
+
+
 ## Foundry
 
 **Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
