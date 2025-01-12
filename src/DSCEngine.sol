@@ -53,12 +53,12 @@ contract DSCEngine is Ownable, ReentrancyGuard {
     //////////////////
     //// ERRORS //////
     //////////////////
-    error DSCEngine__NeedMoreThanZero();
+    error DSCEngine__NeedsMoreThanZero();
     error DSCEngine__TokenNotAllowed();
     error DSCEngine__MismatchLength();
     error DSCEngine__TransferFailed();
     error DSCEngine__HealthFactorIsBroken(uint256 healthFactor);
-
+    error DSCEngine__MintFailed();
     //////////////////
     //// EVENTS //////
     //////////////////
@@ -85,7 +85,7 @@ contract DSCEngine is Ownable, ReentrancyGuard {
     /////////////////////
     modifier moreThanZero(uint256 _amount) {
         if (_amount == 0) {
-            revert DSCEngine__NeedMoreThanZero();
+            revert DSCEngine__NeedsMoreThanZero();
         }
         _;
     }
@@ -168,10 +168,11 @@ contract DSCEngine is Ownable, ReentrancyGuard {
      * @param _amountDscToMint The amount of Decentralized Stablecoin to mint
      * @notice they must have more collateral than the minimal threshold
      */
-    function MintDsc(uint256 _amountDscToMint) external moreThanZero(_amountDscToMint) nonReentrant {
+    function mintDsc(uint256 _amountDscToMint) external moreThanZero(_amountDscToMint) nonReentrant {
         s_dscMinted[msg.sender] += _amountDscToMint;
-        // if they minted too much ($150 DSC, $100 ETH)
         _revertIfHealthFactorIsBroken(msg.sender);
+        bool minted = i_dsc.mint(msg.sender, _amountDscToMint);
+        if (!minted) revert DSCEngine__MintFailed();
     }
 
     function burnDsc() external {}
@@ -265,5 +266,9 @@ contract DSCEngine is Ownable, ReentrancyGuard {
         // 1ETH = $1000
         // 1000 * 1000000000000000000 / 1e18 = 1000000000000000000000
         return (uint256(price) * ADDITION_FEED_PRECISION) * _amountCollateral / 1e18;
+    }
+
+    function getCollateralTokens() public view returns (address[] memory) {
+        return s_collateralTokens;
     }
 }
