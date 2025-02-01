@@ -1,6 +1,12 @@
 name: test
 
 on: workflow_dispatch
+# on:
+#   push:
+#     branches: [ "main" ]  # 在推送到main分支时触发
+#   pull_request:
+#     branches: [ "main" ]  # 在创建针对main分支的PR时触发
+#   workflow_dispatch:      # 保留手动触发的选项
 
 env:
   FOUNDRY_PROFILE: ci

@@ -8,6 +8,7 @@ import {ERC20Mock} from "../mocks/ERC20Mock.sol";
 import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
 import {DeployDscScript} from "../../script/DeployDsc.s.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
+import {ERC20Mock} from "../mocks/ERC20Mock.sol";
 
 contract DSCEngineTest is Test {
   DeployDscScript deployer;
@@ -20,8 +21,12 @@ contract DSCEngineTest is Test {
   address wbtc;
 
   address public user = makeAddr("user");
-  uint256 public constant AMOUNT_COLLATERAL = 10 ether;
+  uint256 public constant AMOUNT_COLLATERAL = 1 ether;
   uint256 public constant STARTING_ERC20_BALANCE = 10 ether;
+
+  // for testing
+  address[] public tokenAddresses;
+  address[] public priceFeedAddresses;
 
   function setUp() public {
     deployer = new DeployDscScript();
@@ -30,6 +35,62 @@ contract DSCEngineTest is Test {
 
     ERC20Mock(weth).mint(user, STARTING_ERC20_BALANCE);
     ERC20Mock(wbtc).mint(user, STARTING_ERC20_BALANCE);
+  }
+
+  ///////////////////////////
+  //// constructor //////////
+  ///////////////////////////
+  function testRevertsIfTokenLengthDoesntMatchPriceFeedsLength() public {
+    tokenAddresses.push(weth);
+    tokenAddresses.push(wbtc);
+    priceFeedAddresses.push(ethUsdPriceFeedAddress);
+    vm.expectRevert(DSCEngine.DSCEngine__MismatchLength.selector);
+    new DSCEngine(address(dsc), tokenAddresses, priceFeedAddresses);
+  }
+
+  function testRevertsIfTokenLengthDoesntMatchPriceFeedsLength2() public {
+    tokenAddresses.push(weth);
+    priceFeedAddresses.push(ethUsdPriceFeedAddress);
+    priceFeedAddresses.push(btcUsdPriceFeedAddress);
+    vm.expectRevert(DSCEngine.DSCEngine__MismatchLength.selector);
+    new DSCEngine(address(dsc), tokenAddresses, priceFeedAddresses);
+  }
+
+  function testGetTokenAmountFromUsd() public view {
+    uint256 usdAmount = 1000 ether;
+    uint256 expectedWethAmount = 0.5 ether;
+    uint256 actualWethAmount = dsce.getTokenAmountFromUsd(weth, usdAmount);
+    assertEq(actualWethAmount, expectedWethAmount);
+  }
+
+  function testRevertsWithApprovedCollateralOfZeroAmount() public {
+    vm.startPrank(user);
+    vm.expectRevert(DSCEngine.DSCEngine__NeedsMoreThanZero.selector);
+    dsce.depositCollateral(weth, 0);
+    vm.stopPrank();
+  }
+
+  function testRevertsWithUnapprovedCollateral() public {
+    ERC20Mock someToken = new ERC20Mock("SomeToken", "SomeToken", user, 1000e8);
+    vm.startPrank(user);
+    vm.expectRevert(abi.encodeWithSelector(DSCEngine.DSCEngine__TokenNotAllowed.selector, address(someToken)));
+    dsce.depositCollateral(address(someToken), 1);
+    vm.stopPrank();
+  }
+
+  function testCanDepositCollateralAndGetAccountInfo() public depositCollateral(user) {
+    (uint256 totalDscMinted, uint256 totalCollateralValueInUsd) = dsce.getAccountInformation(user);
+    assertEq(totalDscMinted, 0);
+    assertEq(totalCollateralValueInUsd, 2000e18);
+  }
+
+  modifier depositCollateral(address _user) {
+    vm.startPrank(_user);
+    // approve the engine to spend the collateral. This is a MUST.
+    ERC20Mock(weth).approve(address(dsce), AMOUNT_COLLATERAL);
+    dsce.depositCollateral(weth, AMOUNT_COLLATERAL);
+    vm.stopPrank();
+    _;
   }
 
   ///////////////////////////
