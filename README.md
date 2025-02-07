@@ -1,4 +1,4 @@
-# 
+# Stable coin protocol 
 
 1. (Relative Stability) Anchored or Pegged -> $1.00
    1. Chainlink Price Feed.
@@ -10,6 +10,21 @@
    2. wBTC
       1. This is a wrapper token for BTC which can be a little bit centralized.
 4. 
+
+
+
+1. What are our invariants/properties?
+   1. The system should always be overcollateralized.
+   2. The system should always be solvent.
+   3. The system should always be liquid.
+
+## Invariant testing
+
+1. If you want to test the invariant, you need to do this: 
+   - import the invariant testing library.
+   - create a function starts with `invariant_`.
+   - use `assert` to check the invariant.
+By doing this, the fuzzer will call any of the contract's function and then check the invariant.
 
 
 ## Foundry

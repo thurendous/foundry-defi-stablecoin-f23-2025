@@ -124,6 +124,10 @@ contract DSCEngine is Ownable, ReentrancyGuard {
         return IERC20(_tokenAddress).balanceOf(address(this));
     }
 
+    function getCollateralBalanceOfUser(address _user, address _tokenAddress) public view returns (uint256) {
+        return s_collateralDeposits[_user][_tokenAddress];
+    }
+
     ////////////////////////////
     //// EXTERNAL FUNCTIONS ////
     ////////////////////////////
@@ -323,7 +327,7 @@ contract DSCEngine is Ownable, ReentrancyGuard {
         uint256 totalDscMinted,
         uint256 collateralValueInUsd
     ) internal pure returns (uint256) {
-        if (totalDscMinted == 0) return type(uint256).max;
+        if (totalDscMinted == 0) return type(uint256).max; // by this, we avoided division by zero
         uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
         return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;
     }
@@ -346,6 +350,10 @@ contract DSCEngine is Ownable, ReentrancyGuard {
     //////////////////////////////////////////
     //// PUBLIC & External VIEW FUNCTIONS ////
     //////////////////////////////////////////
+    function calculateHealthFactor(uint256 totalDscMinted, uint256 collateralValueInUsd) external pure returns (uint256) {
+        return _calculateHealthFactor(totalDscMinted, collateralValueInUsd);
+    }
+
     function getTokenAmountFromUsd(address _tokenCollateralAddress, uint256 usdAmountInWei) public view returns (uint256 tokenAmount) {
         address priceFeedAddress = getPriceFeed(_tokenCollateralAddress);
         AggregatorV3Interface priceFeed = AggregatorV3Interface(priceFeedAddress);

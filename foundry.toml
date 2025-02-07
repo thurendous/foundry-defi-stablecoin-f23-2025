@@ -5,4 +5,12 @@ libs = ["lib"]
 solc_version = "0.8.24"
 remappings = ["@openzeppelin/contracts=lib/openzeppelin-contracts/contracts", "@chainlink/contracts=lib/chainlink-brownie-contracts/contracts"]
 
+[fuzz]
+runs = 2000
+
+[invariant]
+runs = 1000
+depth = 128
+fail_on_revert = false
+
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
